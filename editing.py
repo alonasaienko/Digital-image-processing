@@ -1,6 +1,7 @@
 from fastai.vision.all import *
 import numpy as np
 from PIL import Image, ImageOps, ImageFilter
+import cv2
 
 def gaussian_filter(image, radius=2):
     return image.filter(ImageFilter.GaussianBlur(radius))
@@ -24,8 +25,23 @@ def linear_contrast(image):
 
     return stretched_img
 
+def gamma_correction(image, gamma=1.0):
+    if gamma <= 0:
+        gamma = 0.01
+    
+    np_img = np.array(image, dtype=np.float32) / 255.0
+    corrected = np.power(np_img, gamma)
+    corrected = (corrected * 255).astype(np.uint8)
+    return Image.fromarray(corrected)
+
 def equalize_histogram(image):
     return ImageOps.equalize(image) 
+
+def equalize_histogram_local(image, clip_limit=2.0, tile_size=(8,8)):
+    np_img = np.array(image)
+    clahe = cv2.createCLAHE(clipLimit=clip_limit, tileGridSize=tile_size)
+    equalized = clahe.apply(np_img)
+    return Image.fromarray(equalized)
 
 def get_histogram(image):
     gray_img = image.convert('L')

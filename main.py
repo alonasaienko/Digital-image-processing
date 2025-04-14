@@ -1,5 +1,5 @@
 from fastai.vision.all import *
-from visualization import show_images, show_info, show_hist, show_filters, show_neighbors
+from visualization import show_images, show_info, show_hist, show_filters, show_neighbors, show_contrast
 from data_load import data_load, random_image_selection
 from editing import quantize_image
 
@@ -7,7 +7,6 @@ def main():
     while True:
         print("\nChoose option:")
         print("1 - Set dataset")
-        print("2 - Get photo from camera")
         print("0 - Exit")
 
         choice = input("Your choice: ")
@@ -59,6 +58,7 @@ def image_operation(img):
         print("3 - Filters")
         print("4 - Neighbors pixels")
         print("5 - Quantize")
+        print("6 - Contrast correction")
         print("0 - Exit")
 
         choice = input("Your choice: ")
@@ -81,6 +81,9 @@ def image_operation(img):
             quantized_image = quantize_image(img, color_depth=8)
             show_info(quantized_image, title="Quantized")
             continue
+        elif choice == "6":
+            show_contrast(img)
+            show_contrast(img.convert('L'))
         elif choice == "0":
             print("Exiting program...")
             return None

@@ -4,7 +4,7 @@ import torchvision
 from PIL import Image
 import numpy as np
 
-from editing import gaussian_filter, get_histogram, equalize_histogram, median_filter, box_filter, sharpen_image, linear_contrast, get_neighbors
+from editing import gaussian_filter, get_histogram, equalize_histogram, median_filter, box_filter, sharpen_image, linear_contrast, get_neighbors, gamma_correction, equalize_histogram_local
 
 def show_images(images, N=32, title=None):
     plt.figure(figsize=(8, 8))
@@ -51,28 +51,99 @@ def show_info(images, title="Image Analysis"):
     plt.tight_layout(rect=[0, 0.03, 1, 0.95])
     plt.show()
 
-def show_hist(images, title="Filters"):
+def show_hist(images, title="Histogram"):
     if not isinstance(images, list):
         images = [images]
 
-    plt.figure(figsize=(16, 6))
+    for img in images:
+        plt.figure(figsize=(16, 8))
 
-    for i, img in enumerate(images):
+        if img.mode != 'L':
+            img_gray = img.convert('L')
+        else:
+            img_gray = img
 
-        img_equalize_histogram = equalize_histogram(img)
+        img_global = equalize_histogram(img_gray)
+        img_local = equalize_histogram_local(img_gray)
+        
+        plt.subplot(2, 3, 1)
+        plt.imshow(img_gray, cmap='gray')
+        plt.title('Original Image')
+        plt.axis('off')
+        
+        plt.subplot(2, 3, 4)
+        hist = get_histogram(img_gray)
+        plt.plot(hist, color='black')
+        plt.title('Original Histogram')
+        plt.xlim([0, 256])
+        
+        plt.subplot(2, 3, 2)
+        plt.imshow(img_global, cmap='gray')
+        plt.title('Global Equalization')
+        plt.axis('off')
+        
+        plt.subplot(2, 3, 5)
+        hist_global = get_histogram(img_global)
+        plt.plot(hist_global, color='black')
+        plt.title('Global Equalized Histogram')
+        plt.xlim([0, 256])
+        
+        plt.subplot(2, 3, 3)
+        plt.imshow(img_local, cmap='gray')
+        plt.title('Local Equalization (CLAHE)')
+        plt.axis('off')
+        
+        plt.subplot(2, 3, 6)
+        hist_local = get_histogram(img_local)
+        plt.plot(hist_local, color='black')
+        plt.title('Local Equalized Histogram')
+        plt.xlim([0, 256])
+        
+        plt.tight_layout()
+        plt.show()
+
+def show_contrast(images, title="Contrast"):
+    if not isinstance(images, list):
+        images = [images]
+
+    plt.figure(figsize=(18, 12))
+
+    for img in images:
+
+        img_gamma_correction = gamma_correction(img, gamma=0.1)
         img_linear_contrast = linear_contrast(img)
 
-        plt.subplot(1, 2, 1)
-        plt.imshow(img_equalize_histogram)
+        plt.subplot(3, 2, 1)
+        plt.imshow(img, cmap='gray' if img.mode == 'L' else None)
+        plt.title("Original Image")
         plt.axis('off')
-        plt.title("Equalized Histogram")
 
-        plt.subplot(1, 2, 2)
-        plt.imshow(img_linear_contrast)
+        plt.subplot(3, 2, 2)
+        hist = get_histogram(img)
+        plt.plot(hist, color='black')
+        plt.title("Original Histogram")
+
+        plt.subplot(3, 2, 3)
+        plt.imshow(img_gamma_correction, cmap='gray' if img_gamma_correction.mode == 'L' else None)
+        plt.title("Gamma Correction (gamma=0.1)")
         plt.axis('off')
+
+        plt.subplot(3, 2, 4)
+        hist_gamma = get_histogram(img_gamma_correction)
+        plt.plot(hist_gamma, color='black')
+        plt.title("Gamma Histogram")
+
+        plt.subplot(3, 2, 5)
+        plt.imshow(img_linear_contrast, cmap='gray' if img_linear_contrast.mode == 'L' else None)
         plt.title("Linear Contrast")
+        plt.axis('off')
 
-    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+        plt.subplot(3, 2, 6)
+        hist_linear = get_histogram(img_linear_contrast)
+        plt.plot(hist_linear, color='black')
+        plt.title("Linear Contrast Histogram")
+
+    plt.tight_layout()
     plt.show()
 
 def show_filters(images, title="Filters"):
