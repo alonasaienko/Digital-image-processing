@@ -4,7 +4,7 @@ import torchvision
 from PIL import Image
 import numpy as np
 
-from editing import gaussian_filter, get_histogram, equalize_histogram, median_filter, box_filter, sharpen_image, linear_contrast, get_neighbors, gamma_correction, equalize_histogram_local
+from editing import gaussian_filter, get_histogram, equalize_histogram, median_filter, box_filter, sharpen_image, linear_contrast, get_neighbors, gamma_correction, equalize_histogram_local, add_gaussian_noise, imp_noise, back_filter
 
 def show_images(images, N=32, title=None):
     plt.figure(figsize=(8, 8))
@@ -179,6 +179,66 @@ def show_filters(images, title="Filters"):
         plt.imshow(img_sharp)
         plt.axis('off')
         plt.title("Sharpened Image")
+
+    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+    plt.show()
+
+def show_noise(images, title="Add noise"):
+
+    if not isinstance(images, list):
+        images = [images]
+
+    plt.figure(figsize=(12, 6))
+
+    for i, img in enumerate(images):
+
+        gaussian_noise = add_gaussian_noise(img)
+        impulse_noise = imp_noise(img)
+
+        plt.subplot(2, 2, 1)
+        plt.imshow(img)
+        plt.axis('off')
+        plt.title("Original image")
+
+        plt.subplot(2, 2, 2)
+        plt.imshow(gaussian_noise)
+        plt.axis('off')
+        plt.title("Gaussian Noise")
+
+        plt.subplot(2, 2, 3)
+        plt.imshow(impulse_noise)
+        plt.axis('off')
+        plt.title("Impulse Noise")
+
+    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+    plt.show()
+
+def show_back_blur(images, title="Add noise"):
+
+    if not isinstance(images, list):
+        images = [images]
+
+    plt.figure(figsize=(12, 6))
+
+    for i, img in enumerate(images):
+
+        blure_image = gaussian_filter(img)
+        back_blur_image = back_filter(blure_image)
+
+        plt.subplot(2, 2, 1)
+        plt.imshow(img)
+        plt.axis('off')
+        plt.title("Original image")
+
+        plt.subplot(2, 2, 2)
+        plt.imshow(blure_image)
+        plt.axis('off')
+        plt.title("Blure image")
+
+        plt.subplot(2, 2, 3)
+        plt.imshow(back_blur_image)
+        plt.axis('off')
+        plt.title("Restored image")
 
     plt.tight_layout(rect=[0, 0.03, 1, 0.95])
     plt.show()

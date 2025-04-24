@@ -1,3 +1,4 @@
+import random
 from fastai.vision.all import *
 import numpy as np
 from PIL import Image, ImageOps, ImageFilter
@@ -76,3 +77,27 @@ def quantize_image(image, color_depth=2):
     quantized_image = Image.fromarray(img_quantized.astype('uint8'))
     
     return quantized_image
+""" 
+2. Реалізувати методи видалення шуму: середній фільтр, медіанний фільтр, Вінерівськиф фільтр
+3. Використати зворотну фільтрацію для відновлення розмитого зображення.
+4. Реалізувати обмежену фільтрацію найменших квадратів. """
+
+def add_gaussian_noise(image, mean=0, sigma=25):
+    img_array = np.array(image)
+    noise = np.random.normal(mean, sigma, img_array.shape).astype(np.uint8)
+    noisy_array = np.clip(img_array + noise, 0, 255).astype(np.uint8)
+    return Image.fromarray(noisy_array)
+
+def imp_noise(image, prob=0.02):
+    if isinstance(image, Image.Image):
+        image = np.array(image)
+        
+    noisy_image = np.copy(image)
+    height, width = image.shape[0], image.shape[1]
+    total_pixels = height * width
+    num_pixels = int(prob * total_pixels)
+
+    for _ in range(num_pixels):
+        y, x = random.randint(0,height-1), random.randint(0, width-1)
+        noisy_image[y, x] = 0 if random.random() < 0.5 else 255
+    return noisy_image
