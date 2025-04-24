@@ -1,7 +1,10 @@
+from tkinter import Image
+
+import numpy as np
 from fastai.vision.all import *
-from visualization import show_images, show_info, show_hist, show_filters, show_neighbors, show_contrast, show_noise, show_back_blur
+from visualization import show_filter_results, show_images, show_info, show_hist, show_filters, show_neighbors, show_contrast
 from data_load import data_load, random_image_selection
-from editing import quantize_image
+from editing import add_gaussian_noise, back_filter, back_filter_rgb, box_filter, constrained_least_squares, constrained_least_squares_rgb, gaussian_filter, imp_noise, median_filter, quantize_image, wiener_filter
 
 def main():
     while True:
@@ -64,8 +67,10 @@ def lab_1(img):
             show_neighbors(img, 100, 100, connectivity=8)
             continue
         elif choice == "2":
-            quantized_image = quantize_image(img, color_depth=8)
-            show_info(quantized_image, title="Quantized")
+            quantized_4 = quantize_image(img, 4)
+            quantized_8 = quantize_image(img, 8)
+            show_filter_results(img, [quantized_4, quantized_8],
+                            ['4 colors', '8 colors'])
             continue
         elif choice == "0":
             print("Exiting program...")
@@ -93,38 +98,109 @@ def lab_2(img):
         elif choice == "3":
             show_contrast(img)
             show_contrast(img.convert('L'))
+            continue
         elif choice == "0":
             print("Exiting program...")
             return None
         else:
             print("Invalid choice. Please enter 1, 2, 3, or 0.")
             continue
+
 
 def lab_3(img):
     while True:
         print("\nChoose img operation:")
         print("1 - Adding noise")
-        print("2 - Quantize")
-        print("3 - Back blur")
+        print("2 - Show all filters: Median, Box, Wiener")
+        print("3 - Back filter")
+        print("4 - Constrained least squares")
         print("0 - Exit")
 
         choice = input("Your choice: ")
 
         if choice == "1":
-            show_noise(img)
+            gaussian_noise = add_gaussian_noise(img, sigma=25)
+            impulse_noise = imp_noise(img)
+            show_filter_results(img, [gaussian_noise, impulse_noise], 
+                              ['Gaussian Noise', 'Impulse Noise'])
             continue
         elif choice == "2":
-            quantized_image = quantize_image(img, color_depth=8)
-            show_info(quantized_image, title="Quantized")
+            noisy_img = add_gaussian_noise(img, sigma=25)
+
+            wiener = wiener_filter(noisy_img)
+            median = median_filter(noisy_img)
+            mean = box_filter(noisy_img)
+
+            show_filter_results(noisy_img, [wiener, median, mean], 
+                              ['Wiener Filter', 'Median Filter', 'Mean(Box) Filter'])
             continue
         elif choice == "3":
-            show_back_blur(img)
+            blurred_img = gaussian_filter(img, radius=3)
+            restored_img = back_filter_rgb(blurred_img)
+            show_filter_results(img, [blurred_img, restored_img],
+                              ['Blurred', 'Restored'])
+            continue
+        elif choice == "4":
+            blurred_img = gaussian_filter(img, radius=3)
+            cls_restored = constrained_least_squares_rgb(blurred_img)
+            show_filter_results(img, [blurred_img, cls_restored],
+                            ['Blurred', 'Restored (Constrained LSQ)'])
+            continue
         elif choice == "0":
             print("Exiting program...")
             return None
         else:
-            print("Invalid choice. Please enter 1, 2, 3, or 0.")
+            print("Invalid choice. Please enter a number between 0 and 10.")
+
+#Реалізувати конвертація між кольоровими моделями rgb hsv cmy ycbcr
+#Виконати згладжування кольорового зображення
+#Реалізувати підвищення різкості кольорового зображення
+#Реалізувати сегментацію на основі кольору (кластеризація, порогова обробка)
+#Виконати стиснення зображення за допомогою кольорових можелей jpeg
+def lab_4(img):
+    while True:
+        print("\nChoose img operation:")
+        print("1 - Converting to different color model")
+        print("2 - Show all filters: Median, Box, Wiener")
+        print("3 - Back filter")
+        print("4 - Constrained least squares")
+        print("0 - Exit")
+
+        choice = input("Your choice: ")
+
+        if choice == "1":
+            gaussian_noise = add_gaussian_noise(img, sigma=25)
+            impulse_noise = imp_noise(img)
+            show_filter_results(img, [gaussian_noise, impulse_noise], 
+                              ['Gaussian Noise', 'Impulse Noise'])
             continue
+        elif choice == "2":
+            noisy_img = add_gaussian_noise(img, sigma=25)
+
+            wiener = wiener_filter(noisy_img)
+            median = median_filter(noisy_img)
+            mean = box_filter(noisy_img)
+
+            show_filter_results(noisy_img, [wiener, median, mean], 
+                              ['Wiener Filter', 'Median Filter', 'Mean(Box) Filter'])
+            continue
+        elif choice == "3":
+            blurred_img = gaussian_filter(img, radius=3)
+            restored_img = back_filter_rgb(blurred_img)
+            show_filter_results(img, [blurred_img, restored_img],
+                              ['Blurred', 'Restored'])
+            continue
+        elif choice == "4":
+            blurred_img = gaussian_filter(img, radius=3)
+            cls_restored = constrained_least_squares_rgb(blurred_img)
+            show_filter_results(img, [blurred_img, cls_restored],
+                            ['Blurred', 'Restored (Constrained LSQ)'])
+            continue
+        elif choice == "0":
+            print("Exiting program...")
+            return None
+        else:
+            print("Invalid choice. Please enter a number between 0 and 10.")
     
 def image_operation(img):
     while True:

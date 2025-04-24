@@ -1,6 +1,5 @@
 import matplotlib.pyplot as plt
-from fastai.vision.all import *
-import torchvision
+import torchvision # type: ignore
 from PIL import Image
 import numpy as np
 
@@ -183,66 +182,6 @@ def show_filters(images, title="Filters"):
     plt.tight_layout(rect=[0, 0.03, 1, 0.95])
     plt.show()
 
-def show_noise(images, title="Add noise"):
-
-    if not isinstance(images, list):
-        images = [images]
-
-    plt.figure(figsize=(12, 6))
-
-    for i, img in enumerate(images):
-
-        gaussian_noise = add_gaussian_noise(img)
-        impulse_noise = imp_noise(img)
-
-        plt.subplot(2, 2, 1)
-        plt.imshow(img)
-        plt.axis('off')
-        plt.title("Original image")
-
-        plt.subplot(2, 2, 2)
-        plt.imshow(gaussian_noise)
-        plt.axis('off')
-        plt.title("Gaussian Noise")
-
-        plt.subplot(2, 2, 3)
-        plt.imshow(impulse_noise)
-        plt.axis('off')
-        plt.title("Impulse Noise")
-
-    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
-    plt.show()
-
-def show_back_blur(images, title="Add noise"):
-
-    if not isinstance(images, list):
-        images = [images]
-
-    plt.figure(figsize=(12, 6))
-
-    for i, img in enumerate(images):
-
-        blure_image = gaussian_filter(img)
-        back_blur_image = back_filter(blure_image)
-
-        plt.subplot(2, 2, 1)
-        plt.imshow(img)
-        plt.axis('off')
-        plt.title("Original image")
-
-        plt.subplot(2, 2, 2)
-        plt.imshow(blure_image)
-        plt.axis('off')
-        plt.title("Blure image")
-
-        plt.subplot(2, 2, 3)
-        plt.imshow(back_blur_image)
-        plt.axis('off')
-        plt.title("Restored image")
-
-    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
-    plt.show()
-
 def convert_image(img, output_path, output_format):
     img.save(output_path, format=output_format)
 
@@ -261,4 +200,35 @@ def show_neighbors(image, x, y, connectivity=4):
     plt.imshow(img_copy)
     plt.axis("off")
     plt.title(f"Піксель ({x}, {y}) та його сусіди ({'4-сусідство' if connectivity == 4 else '8-сусідство'})")
+    plt.show()
+
+def show_filter_results(original_img, filtered_imgs, titles, figsize=(15, 5)):
+    """
+    Відображення результатів фільтрації
+    :param original_img: оригінальне зображення
+    :param filtered_imgs: список відфільтрованих зображень
+    :param titles: список заголовків
+    :param figsize: розмір фігури
+    """
+    plt.figure(figsize=figsize)
+    
+    # Відображення оригінального зображення
+    plt.subplot(1, len(filtered_imgs)+1, 1)
+    if isinstance(original_img, np.ndarray):
+        plt.imshow(original_img, cmap='gray' if len(original_img.shape) == 2 else None)
+    else:
+        plt.imshow(original_img)
+    plt.axis('off')
+    
+    # Відображення відфільтрованих зображень
+    for i, (img, title) in enumerate(zip(filtered_imgs, titles), 2):
+        plt.subplot(1, len(filtered_imgs)+1, i)
+        if isinstance(img, np.ndarray):
+            plt.imshow(img, cmap='gray' if len(img.shape) == 2 else None)
+        else:
+            plt.imshow(img)
+        plt.title(title)
+        plt.axis('off')
+    
+    plt.tight_layout()
     plt.show()
