@@ -36,6 +36,4 @@ def random_image_selection(folder_path):
         return
     
     random_image_path = random.choice(image_files)
-    img = Image.open(random_image_path)
-    return img
-
+    return random_image_path

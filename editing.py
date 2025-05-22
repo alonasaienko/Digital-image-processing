@@ -3,6 +3,7 @@ from fastai.vision.all import *
 import numpy as np
 from PIL import Image, ImageOps, ImageFilter
 import cv2
+from sklearn.cluster import KMeans
 
 def gaussian_filter(image, radius=2):
     return image.filter(ImageFilter.GaussianBlur(radius))
@@ -15,6 +16,14 @@ def box_filter(image, size=3):
 
 def sharpen_image(image, factor=2):
     return image.filter(ImageFilter.UnsharpMask(radius=3, percent=250, threshold=3))
+
+def sharpen_image_kernel(image):
+    sharpen_kernel = [
+        [0, -1, 0],
+        [-1, 5,-1],
+        [0, -1, 0]
+    ]
+    return image.filter(ImageFilter.Kernel(size=(3, 3), kernel=[item for sublist in sharpen_kernel for item in sublist], scale=1))
 
 def linear_contrast(image):
     gray = image.convert('L')
@@ -191,3 +200,74 @@ def constrained_least_squares_rgb(image, kernel_size=5, gamma=0.01):
         constrained_least_squares(ch, kernel_size, gamma) for ch in channels
     ]
     return Image.merge("RGB", restored_channels)
+
+def rgb_to_hsv(image):
+    if isinstance(image, Image.Image):
+        rgb = np.array(image.convert('RGB'))
+    else:
+        rgb = np.array(image)
+    hsv = cv2.cvtColor(rgb, cv2.COLOR_RGB2HSV)
+    return Image.fromarray(hsv, 'RGB')
+
+def rgb_to_cmy(image):
+    if isinstance(image, Image.Image):
+        rgb = np.array(image.convert('RGB'), dtype=np.float32) / 255.0
+    else:
+        rgb = np.array(image, dtype=np.float32) / 255.0
+    
+    cmy = 1.0 - rgb
+    cmy = (cmy * 255).astype(np.uint8)
+    return Image.fromarray(cmy)
+
+def rgb_to_ycbcr(image):
+    if isinstance(image, Image.Image):
+        ycbcr = image.convert('YCbCr')
+    else:
+        ycbcr = Image.fromarray(image).convert('YCbCr')
+    return ycbcr
+
+def segmentation(image):
+    if isinstance(image, Image.Image):
+        rgb = np.array(image.convert('RGB'))
+    else:
+        rgb = np.array(image)
+    hsv = cv2.cvtColor(rgb, cv2.COLOR_RGB2HSV)
+    mask = cv2.inRange(hsv, (30, 50, 50), (90, 255, 255))
+    segmented = cv2.bitwise_and(rgb, rgb, mask=mask)
+    return Image.fromarray(segmented, 'RGB')
+
+def kmeans_segmentation(image, k=3):
+    if isinstance(image, Image.Image):
+        rgb = np.array(image.convert('RGB'))
+    else:
+        rgb = np.array(image)
+
+    Z = rgb.reshape((-1, 3))
+
+    kmeans = KMeans(n_clusters=k, n_init='auto')
+    kmeans.fit(Z)
+    labels = kmeans.labels_
+    centers = np.uint8(kmeans.cluster_centers_)
+
+    segmented_data = centers[labels.flatten()]
+    segmented_image = segmented_data.reshape(rgb.shape)
+
+    return Image.fromarray(segmented_image)
+
+def color_blur(image, kernel_size=(5, 5), sigma=1):
+    if isinstance(image, Image.Image):
+        rgb = np.array(image.convert('RGB'))
+    else:
+        rgb = np.array(image)
+    (b, g, r) = cv2.split(rgb)
+
+    b_blur = cv2.GaussianBlur(b, kernel_size, sigma)
+    g_blur = cv2.GaussianBlur(g, kernel_size, sigma)
+    r_blur = cv2.GaussianBlur(r, kernel_size, sigma)
+
+    return cv2.merge((b_blur, g_blur, r_blur))
+
+def compress_image(input_image_path, output_image_path, quality=85):
+    image = Image.open(input_image_path)
+    
+    image.save(output_image_path, 'JPEG', quality=quality)

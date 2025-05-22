@@ -203,16 +203,8 @@ def show_neighbors(image, x, y, connectivity=4):
     plt.show()
 
 def show_filter_results(original_img, filtered_imgs, titles, figsize=(15, 5)):
-    """
-    Відображення результатів фільтрації
-    :param original_img: оригінальне зображення
-    :param filtered_imgs: список відфільтрованих зображень
-    :param titles: список заголовків
-    :param figsize: розмір фігури
-    """
     plt.figure(figsize=figsize)
     
-    # Відображення оригінального зображення
     plt.subplot(1, len(filtered_imgs)+1, 1)
     if isinstance(original_img, np.ndarray):
         plt.imshow(original_img, cmap='gray' if len(original_img.shape) == 2 else None)
@@ -220,7 +212,6 @@ def show_filter_results(original_img, filtered_imgs, titles, figsize=(15, 5)):
         plt.imshow(original_img)
     plt.axis('off')
     
-    # Відображення відфільтрованих зображень
     for i, (img, title) in enumerate(zip(filtered_imgs, titles), 2):
         plt.subplot(1, len(filtered_imgs)+1, i)
         if isinstance(img, np.ndarray):
