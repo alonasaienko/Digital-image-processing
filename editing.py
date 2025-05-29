@@ -5,6 +5,13 @@ from PIL import Image, ImageOps, ImageFilter
 import cv2
 from sklearn.cluster import KMeans
 
+from skimage.segmentation import watershed, felzenszwalb
+from skimage.feature import canny
+from skimage.filters import sobel
+from matplotlib import pyplot as plt
+from ipywidgets import interact, IntSlider, FloatSlider
+import ipywidgets as widgets
+
 def gaussian_filter(image, radius=2):
     return image.filter(ImageFilter.GaussianBlur(radius))
 
@@ -365,3 +372,54 @@ def erosion_reconstruction(marker, mask, kernel_size=3, max_iter=100):
         prev = reconstruction.copy()
     
     return reconstruction
+
+def canny_segmentation(image, sigma=1.0, low_threshold=50, high_threshold=100):
+    if isinstance(image, Image.Image):
+        img = np.array(image.convert('RGB'))
+    else:
+        img = np.array(image)
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    edges = canny(gray, sigma=sigma, low_threshold=low_threshold, high_threshold=high_threshold)
+    return edges
+
+def region_growing(image, threshold=10):
+    if isinstance(image, Image.Image):
+        img = np.array(image.convert('RGB'))
+    else:
+        img = np.array(image)
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    markers = np.zeros_like(gray)
+    
+    markers[100, 100] = 1
+    markers[200, 200] = 2
+    
+    segmentation = watershed(sobel(gray), markers)
+    return segmentation
+
+def watershed_segmentation(image):
+    if isinstance(image, Image.Image):
+        img = np.array(image.convert('RGB'))
+    else:
+        img = np.array(image)
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    ret, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+
+    kernel = np.ones((3,3), np.uint8)
+    opening = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel, iterations=2)
+
+    sure_bg = cv2.dilate(opening, kernel, iterations=3)
+
+    dist_transform = cv2.distanceTransform(opening, cv2.DIST_L2, 5)
+    ret, sure_fg = cv2.threshold(dist_transform, 0.7*dist_transform.max(), 255, 0)
+
+    sure_fg = np.uint8(sure_fg)
+    unknown = cv2.subtract(sure_bg, sure_fg)
+
+    ret, markers = cv2.connectedComponents(sure_fg)
+    markers = markers + 1
+    markers[unknown == 255] = 0
+
+    markers = cv2.watershed(img, markers)
+    img[markers == -1] = [255,0,0]
+    
+    return img

@@ -5,7 +5,7 @@ import numpy as np
 from fastai.vision.all import *
 from visualization import show_filter_results, show_images, show_info, show_hist, show_filters, show_neighbors, show_contrast
 from data_load import data_load, random_image_selection
-from editing import add_gaussian_noise, back_filter, back_filter_rgb, box_filter, color_blur, compress_image, constrained_least_squares, constrained_least_squares_rgb, gaussian_filter, gray_closing, gray_dilation, gray_erosion, gray_opening, imp_noise, kmeans_segmentation, median_filter, quantize_image, rgb_to_cmy, rgb_to_hsv, rgb_to_ycbcr, segmentation, sharpen_image, sharpen_image_kernel, wiener_filter, erosion, dilation, opening, closing
+from editing import add_gaussian_noise, back_filter, back_filter_rgb, box_filter, canny_segmentation, color_blur, compress_image, constrained_least_squares, constrained_least_squares_rgb, gaussian_filter, gray_closing, gray_dilation, gray_erosion, gray_opening, imp_noise, kmeans_segmentation, median_filter, quantize_image, region_growing, rgb_to_cmy, rgb_to_hsv, rgb_to_ycbcr, segmentation, sharpen_image, sharpen_image_kernel, watershed_segmentation, wiener_filter, erosion, dilation, opening, closing
 
 def main():
     while True:
@@ -211,7 +211,6 @@ def lab_5():
         print("\nChoose img operation:")
         print("1 - Binar image")
         print("2 - Gray image")
-        print("3 - Reconstruction")
         print("0 - Exit")
 
         choice = input("Your choice: ")
@@ -242,26 +241,27 @@ def lab_5():
             show_filter_results(img, [erosion_img, dilation_img, opening_img, closing_img], 
                               ['Erosion', 'Dilatation', 'Opening', 'Closing'])
             continue
-        elif choice == "3":
-            sharpened_img = sharpen_image(img)
-            sharpened_image_kernel = sharpen_image_kernel(img)
-            show_filter_results(img, [sharpened_img, sharpened_image_kernel],
-                              ['Sharpened', 'Kernel'])
-            continue
-        elif choice == "4":
-            segmented = kmeans_segmentation(img)
+        elif choice == "0":
+            print("Exiting program...")
+            return None
+        else:
+            print("Invalid choice. Please enter a number between 0 and 10.")
 
-            show_filter_results(img, [segmented], 
-                              ['Segmented'])
-            continue
-        elif choice == "5":
-            input_image_path = image_path
-            output_image_path = "compressed_image.jpg"
-            compress_image(input_image_path, output_image_path, quality=5)
+def lab_6(img):
+    while True:
+        print("\nChoose img operation:")
+        print("1 - Segmentation")
+        print("0 - Exit")
 
-            compressed_img = Image.open(output_image_path)
-            show_filter_results(img, [compressed_img], 
-                              ['Compressed'])
+        choice = input("Your choice: ")
+
+        if choice == "1":
+            canny_img = canny_segmentation(img)
+            kmeans_img = kmeans_segmentation(img)
+            water_img = watershed_segmentation(img)
+
+            show_filter_results(img, [canny_img, kmeans_img, water_img], 
+                              ['Canny', 'K-means', 'Watershed', 'Optical flow'])
             continue
         elif choice == "0":
             print("Exiting program...")
@@ -278,6 +278,7 @@ def image_operation(img, image_path):
         print("3 - Lab3")
         print("4 - Lab4")
         print("5 - Lab5")
+        print("6 - Lab6")
         print("10 - Exit")
 
         choice = input("Your choice: ")
@@ -299,6 +300,9 @@ def image_operation(img, image_path):
             continue
         elif choice == "5":
             lab_5()
+            continue
+        elif choice == "6":
+            lab_6(img)
             continue
         elif choice == "10":
             print("Exiting program...")
