@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import torchvision # type: ignore
 from PIL import Image
 import numpy as np
+import cv2
 
 from editing import gaussian_filter, get_histogram, equalize_histogram, median_filter, box_filter, sharpen_image, linear_contrast, get_neighbors, gamma_correction, equalize_histogram_local, add_gaussian_noise, imp_noise, back_filter
 
@@ -204,6 +205,9 @@ def show_neighbors(image, x, y, connectivity=4):
 
 def show_filter_results(original_img, filtered_imgs, titles, figsize=(15, 5)):
     plt.figure(figsize=figsize)
+
+    if isinstance(original_img, np.ndarray) and len(original_img.shape) == 3:
+        original_img = cv2.cvtColor(original_img, cv2.COLOR_BGR2RGB)
     
     plt.subplot(1, len(filtered_imgs)+1, 1)
     if isinstance(original_img, np.ndarray):
@@ -214,6 +218,8 @@ def show_filter_results(original_img, filtered_imgs, titles, figsize=(15, 5)):
     
     for i, (img, title) in enumerate(zip(filtered_imgs, titles), 2):
         plt.subplot(1, len(filtered_imgs)+1, i)
+        if isinstance(img, np.ndarray) and len(img.shape) == 3:
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         if isinstance(img, np.ndarray):
             plt.imshow(img, cmap='gray' if len(img.shape) == 2 else None)
         else:

@@ -271,3 +271,97 @@ def compress_image(input_image_path, output_image_path, quality=85):
     image = Image.open(input_image_path)
     
     image.save(output_image_path, 'JPEG', quality=quality)
+
+def erosion(image, kernel_size=3, kernel_shape=cv2.MORPH_RECT):
+    if isinstance(image, Image.Image):
+        img = np.array(image.convert('RGB'))
+    else:
+        img = np.array(image)
+    kernel = cv2.getStructuringElement(kernel_shape, (kernel_size, kernel_size))
+    return cv2.erode(img, kernel, iterations=1)
+
+def dilation(image, kernel_size=3, kernel_shape=cv2.MORPH_RECT):
+    if isinstance(image, Image.Image):
+        img = np.array(image.convert('RGB'))
+    else:
+        img = np.array(image)
+    kernel = cv2.getStructuringElement(kernel_shape, (kernel_size, kernel_size))
+    return cv2.dilate(img, kernel, iterations=1)
+
+def opening(image, kernel_size=3, kernel_shape=cv2.MORPH_RECT):
+    if isinstance(image, Image.Image):
+        img = np.array(image.convert('RGB'))
+    else:
+        img = np.array(image)
+    kernel = cv2.getStructuringElement(kernel_shape, (kernel_size, kernel_size))
+    return cv2.morphologyEx(img, cv2.MORPH_OPEN, kernel)
+
+def closing(image, kernel_size=3, kernel_shape=cv2.MORPH_RECT):
+    if isinstance(image, Image.Image):
+        img = np.array(image.convert('RGB'))
+    else:
+        img = np.array(image)
+    kernel = cv2.getStructuringElement(kernel_shape, (kernel_size, kernel_size))
+    return cv2.morphologyEx(img, cv2.MORPH_CLOSE, kernel)
+
+def gray_erosion(image, kernel_size=3, kernel_shape=cv2.MORPH_RECT):
+    if isinstance(image, Image.Image):
+        img = np.array(img.convert('L'))
+    else:
+        img = np.array(image)
+    kernel = cv2.getStructuringElement(kernel_shape, (kernel_size, kernel_size))
+    return cv2.erode(img, kernel)
+
+def gray_dilation(image, kernel_size=3, kernel_shape=cv2.MORPH_RECT):
+    if isinstance(image, Image.Image):
+        img = np.array(img.convert('L'))
+    else:
+        img = np.array(image)
+    kernel = cv2.getStructuringElement(kernel_shape, (kernel_size, kernel_size))
+    return cv2.dilate(img, kernel)
+
+def gray_opening(image, kernel_size=3, kernel_shape=cv2.MORPH_RECT):
+    if isinstance(image, Image.Image):
+        img = np.array(img.convert('L'))
+    else:
+        img = np.array(image)
+    kernel = cv2.getStructuringElement(kernel_shape, (kernel_size, kernel_size))
+    return cv2.morphologyEx(img, cv2.MORPH_OPEN, kernel)
+
+def gray_closing(image, kernel_size=3, kernel_shape=cv2.MORPH_RECT):
+    if isinstance(image, Image.Image):
+        img = np.array(img.convert('L'))
+    else:
+        img = np.array(image)
+    kernel = cv2.getStructuringElement(kernel_shape, (kernel_size, kernel_size))
+    return cv2.morphologyEx(img, cv2.MORPH_CLOSE, kernel)
+
+def dilation_reconstruction(marker, mask, kernel_size=3, max_iter=100):
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (kernel_size, kernel_size))
+    prev = np.zeros_like(marker)
+    reconstruction = marker.copy()
+    
+    for _ in range(max_iter):
+        reconstruction = cv2.dilate(reconstruction, kernel)
+        reconstruction = cv2.bitwise_and(reconstruction, mask)
+        
+        if np.array_equal(reconstruction, prev):
+            break
+        prev = reconstruction.copy()
+    
+    return reconstruction
+
+def erosion_reconstruction(marker, mask, kernel_size=3, max_iter=100):
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (kernel_size, kernel_size))
+    prev = np.zeros_like(marker)
+    reconstruction = marker.copy()
+    
+    for _ in range(max_iter):
+        reconstruction = cv2.erode(reconstruction, kernel)
+        reconstruction = cv2.bitwise_or(reconstruction, mask)
+        
+        if np.array_equal(reconstruction, prev):
+            break
+        prev = reconstruction.copy()
+    
+    return reconstruction
